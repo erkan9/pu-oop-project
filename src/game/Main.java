@@ -1,5 +1,7 @@
 package game;
 
+import game.board.BoardFrame;
+
 public class Main {
     
     public BoardFrame boardFrame;

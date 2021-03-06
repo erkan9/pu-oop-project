@@ -1,6 +1,6 @@
 package game.pieces;
 
-import game.Board;
+import game.board.Board;
 
 public class Knight extends Piece {
 
