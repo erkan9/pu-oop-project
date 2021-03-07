@@ -2,6 +2,9 @@ package game.board;
 
 import game.menu.ChoosePiece;
 import game.pieces.*;
+import game.player.BlackPlayer;
+import game.player.Player;
+import game.player.RedPlayer;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -15,8 +18,8 @@ import javax.swing.*;
 @SuppressWarnings("serial")
 public class Board extends JComponent {
 
-    private final Font playerTurnFont = new Font("Tacoma", Font.PLAIN, 15);
     private static final Image nullImage = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
+    private final Font playerTurnFont = new Font("Tacoma", Font.PLAIN, 15);
     private final String boardFilePath = "images" + File.separator + "board.png";
 
     private final byte SQUARE_WIDTH = 65;
@@ -36,6 +39,9 @@ public class Board extends JComponent {
 
     public Piece activePieces;
 
+    public Player redPlayer;
+    public Player blackPlayer;
+
     int mouseXCoordinate;
     int mouseYCoordinate;
     int clickedColumn;
@@ -45,10 +51,33 @@ public class Board extends JComponent {
     boolean chosenDwarf = false;
     boolean chosenElf = false;
     boolean chosenKnight = false;
+    MouseAdapter mouseAdapter = new MouseAdapter() {
 
+        @Override
+        public void mousePressed(MouseEvent e) {
+
+            mouseXCoordinate = e.getX();
+            mouseYCoordinate = e.getY();
+
+            clickedColumn = mouseXCoordinate / SQUARE_WIDTH;
+            clickedRow = mouseYCoordinate / SQUARE_WIDTH;
+
+
+            boolean isRedTurn = checkPlayerTurn();
+
+            figurePlacementLogic(isRedTurn);
+
+            checkIfFigureIsChosen();
+
+            drawBoard();
+        }
+    };
     private Integer[][] BoardGrid;
 
     public Board() {
+
+        blackPlayer = new BlackPlayer(0, 0, 0);
+        redPlayer = new RedPlayer(0, 0, 0);
 
         setLists();
 
@@ -250,30 +279,30 @@ public class Board extends JComponent {
         drawBackground(g2);
         drawShapes(g2);
 
-        drawPlayerTurn(g);
         setChooseFigureMenu();
+        drawPlayerTurn(g);
     }
 
     private void drawBlackPlayerAvailablePlacements(Graphics g) {
 
-        for (int i = 0; i < 9; i++){
+        for (int i = 0; i < 9; i++) {
 
-            for (int c = 0; c < 5; c++){
+            for (int c = 0; c < 5; c++) {
 
-                g.setColor(Color.RED);
-                g.fillRect(i * 65,c* 65,65,65);
+                g.setColor(Color.BLACK);
+                g.fillRect(i * 65, c * 65, 65, 65);
             }
         }
     }
 
     private void drawRedPlayerAvailablePlacements(Graphics g) {
 
-        for (int i = 0; i < 9; i++){
+        for (int i = 0; i < 9; i++) {
 
-            for (int c = 7; c >= 2; c--){
+            for (int c = 7; c >= 2; c--) {
 
                 g.setColor(Color.RED);
-                g.fillRect(i * 65,c* 65,65,65);
+                g.fillRect(i * 65, c * 65, 65, 65);
             }
         }
     }
@@ -413,6 +442,162 @@ public class Board extends JComponent {
         System.out.println("Red Elf Created");
     }
 
+    private void figurePlacementLogic(boolean isRedTurn) {
+
+        if (!isRedTurn) {
+
+            checkBlackPlayerFigurePlacement();
+
+        } else {
+
+            checkRedPlayerFigurePlacement();
+        }
+    }
+
+    private void checkIfFigureIsChosen() {
+
+        if (clickedColumn == 11 && clickedRow == 3) {
+
+            chosenDwarf = true;
+            chosenKnight = false;
+            chosenElf = false;
+
+            isFigureChosen = true;
+
+        } else if (clickedColumn == 11 && clickedRow == 2) {
+
+            chosenKnight = true;
+            chosenDwarf = false;
+            chosenElf = false;
+
+            isFigureChosen = true;
+
+        } else if (clickedColumn == 11 && clickedRow == 4) {
+
+            chosenElf = true;
+            chosenKnight = false;
+            chosenDwarf = false;
+
+            isFigureChosen = true;
+        }
+    }
+
+    private void setChosenFigureBooleans() {
+
+        chosenDwarf = false;
+        chosenKnight = false;
+        chosenElf = false;
+    }
+
+    private void checkBlackPlayerFigurePlacement() {
+
+        if (isFigureChosen) {
+
+            if (clickedRow >= 5 && clickedColumn <= 8) {
+
+                if (!checkIfThereIsBlackPiece(clickedColumn, clickedRow)) {
+
+                    if (chosenDwarf) {
+
+                        if (blackPlayer.getDwarfCounter() < 2) {
+
+                            setBlackDwarf();
+                            blackPlayer.setDwarfCounter(blackPlayer.getDwarfCounter() + 1);
+                            whenFigureChosenSetValues();
+                        }
+                    } else if (chosenKnight) {
+
+                        if (blackPlayer.getKnightCounter() < 2) {
+
+                            setBlackKnight();
+                            blackPlayer.setKnightCounter(blackPlayer.getKnightCounter() + 1);
+                            whenFigureChosenSetValues();
+                        }
+                    } else if (chosenElf) {
+
+                        if (blackPlayer.getElfCounter() < 2) {
+
+                            setBlackElf();
+                            blackPlayer.setElfCounter(blackPlayer.getElfCounter() + 1);
+                            whenFigureChosenSetValues();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean checkIfThereIsBlackPiece(int clickedColumn, int clickedRow) {
+
+        for (Piece p : blackPieces) {
+
+            if (p.getFigureColumn() == clickedColumn && p.getFigureRow() == clickedRow) {
+
+                System.out.println("There is a Figure");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean checkIfThereIsRedPiece(int clickedColumn, int clickedRow) {
+
+        for (Piece p : redPieces) {
+
+            if (p.getFigureColumn() == clickedColumn && p.getFigureRow() == clickedRow) {
+
+                System.out.println("There is a Figure");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void whenFigureChosenSetValues() {
+
+        setChosenFigureBooleans();
+        turnCounter++;
+        isFigureChosen = false;
+    }
+
+    private void checkRedPlayerFigurePlacement() {
+
+        if (isFigureChosen) {
+
+            if (clickedRow <= 1 && clickedColumn <= 8) {
+
+                if (!checkIfThereIsRedPiece(clickedColumn, clickedRow)) {
+
+                    if (chosenDwarf) {
+
+                        if (redPlayer.getDwarfCounter() < 2) {
+
+                            setRedDwarf();
+                            redPlayer.setDwarfCounter(redPlayer.getDwarfCounter() + 1);
+                            whenFigureChosenSetValues();
+                        }
+                    } else if (chosenKnight) {
+
+                        if (redPlayer.getKnightCounter() < 2) {
+
+                            setRedKnight();
+                            redPlayer.setKnightCounter(redPlayer.getKnightCounter() + 1);
+                            whenFigureChosenSetValues();
+                        }
+                    } else if (chosenElf) {
+
+                        if (redPlayer.getElfCounter() < 2) {
+
+                            setRedElf();
+                            redPlayer.setElfCounter(redPlayer.getElfCounter() + 1);
+                            whenFigureChosenSetValues();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     interface DrawingShape {
 
         void draw(Graphics2D g2);
@@ -436,121 +621,6 @@ public class Board extends JComponent {
 
             g2.drawImage(image, (int) bounds.getMinX(), (int) bounds.getMinY(), (int) bounds.getMaxX(), (int) bounds.getMaxY(),
                     0, 0, image.getWidth(null), image.getHeight(null), null);
-        }
-    }
-
-    MouseAdapter mouseAdapter = new MouseAdapter() {
-
-        @Override
-        public void mousePressed(MouseEvent e) {
-
-            mouseXCoordinate = e.getX();
-            mouseYCoordinate = e.getY();
-
-            clickedColumn = mouseXCoordinate / SQUARE_WIDTH;
-            clickedRow = mouseYCoordinate / SQUARE_WIDTH;
-
-            boolean isRedTurn = checkPlayerTurn();
-
-            figurePlacementLogic(isRedTurn);
-
-            checkIfFigureIsChosen();
-
-            drawBoard();
-        }
-    };
-
-    private void isFigureChosen(boolean isRedTurn){
-
-        if (clickedColumn <= 8) {
-
-            isRedTurn = checkPlayerTurn();
-
-            Piece clickedPiece = getPiece(clickedColumn, clickedRow);
-
-            figureLogic(clickedRow, clickedColumn, isRedTurn, clickedPiece);
-        }
-    }
-
-    private void figurePlacementLogic(boolean isRedTurn) {
-
-        if (!isRedTurn) {
-
-            checkBlackPlayerFigurePlacement();
-
-        } else {
-
-            checkRedPlayerFigurePlacement();
-        }
-    }
-
-    private void checkIfFigureIsChosen() {
-
-        if (clickedColumn == 11 && clickedRow == 3) {
-
-            chosenDwarf = true;
-            isFigureChosen = true;
-        } else if (clickedColumn == 11 && clickedRow == 2) {
-
-            chosenKnight = true;
-            isFigureChosen = true;
-        } else if (clickedColumn == 11 && clickedRow == 4) {
-
-            chosenElf = true;
-            isFigureChosen = true;
-        }
-    }
-
-    private void setChosenFigureBooleans() {
-
-        chosenDwarf = false;
-        chosenKnight = false;
-        chosenElf = false;
-    }
-
-    private void checkBlackPlayerFigurePlacement() {
-
-        if (isFigureChosen) {
-
-            if(clickedRow >= 5 && clickedColumn <= 8) {
-
-                if (chosenDwarf) {
-
-                    setBlackDwarf();
-                } else if (chosenKnight) {
-
-                    setBlackKnight();
-                } else if (chosenElf) {
-
-                    setBlackElf();
-                }
-                setChosenFigureBooleans();
-                turnCounter++;
-                isFigureChosen = false;
-            }
-        }
-    }
-
-    private void checkRedPlayerFigurePlacement() {
-
-        if (isFigureChosen) {
-
-            if (clickedRow <= 1  && clickedColumn <= 8) {
-
-                if (chosenDwarf) {
-
-                    setRedDwarf();
-                } else if (chosenKnight) {
-
-                    setRedKnight();
-                } else if (chosenElf) {
-
-                    setRedElf();
-                }
-                setChosenFigureBooleans();
-                isFigureChosen = false;
-                turnCounter++;
-            }
         }
     }
 }
