@@ -1,6 +1,7 @@
 package game.board;
 
-import game.menu.ChoosePiece;
+import game.menu.ChoosePieceMenu;
+import game.menu.ChooseMovementMenu;
 import game.pieces.*;
 import game.player.BlackPlayer;
 import game.player.Player;
@@ -25,6 +26,7 @@ public class Board extends JComponent {
     private final byte SQUARE_WIDTH = 65;
     private final byte IMAGE_OFFSET = 10;
 
+    int numberOfPlacedFigures = 0;
     private final int BOARD_ROWS = 7;
     private final int BOARD_COLUMNS = 9;
     public int turnCounter = 0;
@@ -32,7 +34,8 @@ public class Board extends JComponent {
     public ArrayList<Piece> redPieces;
     public ArrayList<Piece> blackPieces;
     public ArrayList<Obstacle> obstacles;
-    public ArrayList<ChoosePiece> choosePiece;
+    public ArrayList<ChoosePieceMenu> choosePieceMenu;
+    public ArrayList<ChooseMovementMenu> chooseMovement;
 
     public ArrayList<DrawingShape> staticShapes;
     public ArrayList<DrawingShape> pieceGraphics;
@@ -44,6 +47,7 @@ public class Board extends JComponent {
 
     int mouseXCoordinate;
     int mouseYCoordinate;
+
     int clickedColumn;
     int clickedRow;
 
@@ -51,27 +55,7 @@ public class Board extends JComponent {
     boolean chosenDwarf = false;
     boolean chosenElf = false;
     boolean chosenKnight = false;
-    MouseAdapter mouseAdapter = new MouseAdapter() {
 
-        @Override
-        public void mousePressed(MouseEvent e) {
-
-            mouseXCoordinate = e.getX();
-            mouseYCoordinate = e.getY();
-
-            clickedColumn = mouseXCoordinate / SQUARE_WIDTH;
-            clickedRow = mouseYCoordinate / SQUARE_WIDTH;
-
-
-            boolean isRedTurn = checkPlayerTurn();
-
-            figurePlacementLogic(isRedTurn);
-
-            checkIfFigureIsChosen();
-
-            drawBoard();
-        }
-    };
     private Integer[][] BoardGrid;
 
     public Board() {
@@ -84,6 +68,8 @@ public class Board extends JComponent {
         setBoard();
 
         setObstaclesOnBoard();
+        setChooseFigureMenu();
+        setChooseFigureMovementMenu();
 
         this.setBackground(Color.GRAY);
         this.setPreferredSize(new Dimension(900, 455));
@@ -100,9 +86,16 @@ public class Board extends JComponent {
 
     private void setChooseFigureMenu() {
 
-        choosePiece.add(new ChoosePiece(11, 3, "dwarf_menu.png", this));
-        choosePiece.add(new ChoosePiece(11, 2, "knight_menu.png", this));
-        choosePiece.add(new ChoosePiece(11, 4, "elf_menu.png", this));
+            choosePieceMenu.add(new ChoosePieceMenu(11, 3, "dwarf_menu.png", this));
+            choosePieceMenu.add(new ChoosePieceMenu(11, 2, "knight_menu.png", this));
+            choosePieceMenu.add(new ChoosePieceMenu(11, 4, "elf_menu.png", this));
+    }
+
+    private void setChooseFigureMovementMenu() {
+
+            chooseMovement.add(new ChooseMovementMenu(11, 2, "heal_menu.png", this));
+            chooseMovement.add(new ChooseMovementMenu(11, 3, "move_menu.png", this));
+            chooseMovement.add(new ChooseMovementMenu(11, 4, "attack_menu.png", this));
     }
 
     private void setLists() {
@@ -113,7 +106,8 @@ public class Board extends JComponent {
         redPieces = new ArrayList();
         blackPieces = new ArrayList();
         obstacles = new ArrayList<>();
-        choosePiece = new ArrayList<>();
+        choosePieceMenu = new ArrayList<>();
+        chooseMovement = new ArrayList<>();
     }
 
     private void setBoard() {
@@ -125,7 +119,6 @@ public class Board extends JComponent {
                 BoardGrid[column][row] = 0;
             }
         }
-
     }
 
     private void setObstaclesOnBoard() {
@@ -153,6 +146,10 @@ public class Board extends JComponent {
 
         boardImageLoad();
 
+        visualiseFigureMenu();
+
+        visualiseFigureMovementMenu();
+
         activePieceBackGround();
 
         visualiseRedPieces();
@@ -161,7 +158,6 @@ public class Board extends JComponent {
 
         visualiseObstacles();
 
-        visualiseFigureMenu();
 
         this.repaint();
     }
@@ -186,16 +182,35 @@ public class Board extends JComponent {
         }
     }
 
+    private void visualiseFigureMovementMenu() {
+
+        if (numberOfPlacedFigures >= 12) {
+
+            for (ChooseMovementMenu chooseMovementMenu : chooseMovement) {
+
+                int pieceColumn = chooseMovementMenu.getImageColumnPosition();
+                int pieceRow = chooseMovementMenu.getImageRowPosition();
+
+                Image piece = loadImage("images" + File.separator + "movement_menu" + File.separator + chooseMovementMenu.getImageFilePath());
+                pieceGraphics.add(new DrawingImage(piece, new Rectangle2D.Double(SQUARE_WIDTH * pieceColumn + IMAGE_OFFSET, SQUARE_WIDTH * pieceRow + IMAGE_OFFSET,
+                        piece.getWidth(null), piece.getHeight(null))));
+            }
+        }
+    }
+
     private void visualiseFigureMenu() {
 
-        for (ChoosePiece choosePiece : choosePiece) {
+        if (numberOfPlacedFigures < 12) {
 
-            int pieceColumn = choosePiece.getImageColumnPosition();
-            int pieceRow = choosePiece.getImageRowPosition();
+            for (ChoosePieceMenu choosePieceMenu : this.choosePieceMenu) {
 
-            Image piece = loadImage("images" + File.separator + "figure_menu" + File.separator + choosePiece.getImageFilePath());
-            pieceGraphics.add(new DrawingImage(piece, new Rectangle2D.Double(SQUARE_WIDTH * pieceColumn + IMAGE_OFFSET, SQUARE_WIDTH * pieceRow + IMAGE_OFFSET,
-                    piece.getWidth(null), piece.getHeight(null))));
+                int pieceColumn = choosePieceMenu.getImageColumnPosition();
+                int pieceRow = choosePieceMenu.getImageRowPosition();
+
+                Image piece = loadImage("images" + File.separator + "figure_menu" + File.separator + choosePieceMenu.getImageFilePath());
+                pieceGraphics.add(new DrawingImage(piece, new Rectangle2D.Double(SQUARE_WIDTH * pieceColumn + IMAGE_OFFSET, SQUARE_WIDTH * pieceRow + IMAGE_OFFSET,
+                        piece.getWidth(null), piece.getHeight(null))));
+            }
         }
     }
 
@@ -279,7 +294,6 @@ public class Board extends JComponent {
         drawBackground(g2);
         drawShapes(g2);
 
-        setChooseFigureMenu();
         drawPlayerTurn(g);
     }
 
@@ -315,7 +329,10 @@ public class Board extends JComponent {
             g.setColor(Color.RED);
             g.drawString("Red player's turn", 700, 100);
 
-            drawRedPlayerAvailablePlacements(g);
+            if(numberOfPlacedFigures < 12) {
+                g.drawString("Place figure", 715, 120);
+                drawRedPlayerAvailablePlacements(g);
+            }
 
         } else {
 
@@ -323,7 +340,10 @@ public class Board extends JComponent {
             g.setColor(Color.BLACK);
             g.drawString("Black player's turn", 700, 400);
 
-            drawBlackPlayerAvailablePlacements(g);
+            if (numberOfPlacedFigures < 12) {
+                g.drawString("Place a figure", 715, 420);
+                drawBlackPlayerAvailablePlacements(g);
+            }
         }
     }
 
@@ -394,7 +414,7 @@ public class Board extends JComponent {
 
         visualiseBlackPieces();
 
-        System.out.println("Black Dwarf Created");
+        System.out.printf("Placed 'Black' Dwarf [%d][%d]  || ", clickedColumn, clickedRow);
     }
 
     private void setBlackKnight() {
@@ -403,7 +423,7 @@ public class Board extends JComponent {
 
         visualiseBlackPieces();
 
-        System.out.println("Black Knight Created");
+        System.out.printf("Placed 'Black' Knight [%d][%d] || ", clickedColumn, clickedRow);
     }
 
     private void setBlackElf() {
@@ -412,34 +432,70 @@ public class Board extends JComponent {
 
         visualiseBlackPieces();
 
-        System.out.println("Black Elf Created");
+        System.out.printf("Placed 'Black' Elf [%d][%d]    || ", clickedColumn, clickedRow);
     }
 
     private void setRedDwarf() {
 
-        redPieces.add(new Dwarf(clickedColumn, clickedRow, false, "Dwarf.png", this));
+        redPieces.add(new Dwarf(clickedColumn, clickedRow, true, "Dwarf.png", this));
 
         visualiseRedPieces();
 
-        System.out.println("Red Dwarf Created");
+        System.out.printf("Placed 'Red' Dwarf [%d][%d]\n", clickedColumn, clickedRow);
     }
 
     private void setRedKnight() {
 
-        redPieces.add(new Knight(clickedColumn, clickedRow, false, "Knight.png", this));
+        redPieces.add(new Knight(clickedColumn, clickedRow, true, "Knight.png", this));
 
         visualiseRedPieces();
 
-        System.out.println("Red Knight Created");
+        System.out.printf("Placed 'Red' Knight [%d][%d]\n", clickedColumn, clickedRow);
     }
 
     private void setRedElf() {
 
-        redPieces.add(new Elf(clickedColumn, clickedRow, false, "Elf.png", this));
+        redPieces.add(new Elf(clickedColumn, clickedRow, true, "Elf.png", this));
 
         visualiseRedPieces();
 
-        System.out.println("Red Elf Created");
+        System.out.printf("Placed 'Red' Elf [%d][%d]\n", clickedColumn, clickedRow);
+    }
+
+    MouseAdapter mouseAdapter = new MouseAdapter() {
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+
+            mouseXCoordinate = e.getX();
+            mouseYCoordinate = e.getY();
+
+            clickedColumn = mouseXCoordinate / SQUARE_WIDTH;
+            clickedRow = mouseYCoordinate / SQUARE_WIDTH;
+
+            boolean isRedTurn = checkPlayerTurn();
+
+            if(numberOfPlacedFigures >= 12) {
+
+                Piece clickedPiece = getPiece(clickedColumn, clickedRow);
+
+                figureLogic(clickedRow, clickedColumn, isRedTurn, clickedPiece);
+            }
+
+            logicForPlacingThePiecesOnBoard(isRedTurn);
+
+            drawBoard();
+        }
+    };
+
+    private void logicForPlacingThePiecesOnBoard(boolean isRedTurn) {
+
+        if(numberOfPlacedFigures < 12) {
+
+            figurePlacementLogic(isRedTurn);
+
+            checkIfFigureIsChosen();
+        }
     }
 
     private void figurePlacementLogic(boolean isRedTurn) {
@@ -500,7 +556,6 @@ public class Board extends JComponent {
                     if (chosenDwarf) {
 
                         if (blackPlayer.getDwarfCounter() < 2) {
-
                             setBlackDwarf();
                             blackPlayer.setDwarfCounter(blackPlayer.getDwarfCounter() + 1);
                             whenFigureChosenSetValues();
@@ -508,7 +563,6 @@ public class Board extends JComponent {
                     } else if (chosenKnight) {
 
                         if (blackPlayer.getKnightCounter() < 2) {
-
                             setBlackKnight();
                             blackPlayer.setKnightCounter(blackPlayer.getKnightCounter() + 1);
                             whenFigureChosenSetValues();
@@ -516,7 +570,6 @@ public class Board extends JComponent {
                     } else if (chosenElf) {
 
                         if (blackPlayer.getElfCounter() < 2) {
-
                             setBlackElf();
                             blackPlayer.setElfCounter(blackPlayer.getElfCounter() + 1);
                             whenFigureChosenSetValues();
@@ -558,6 +611,7 @@ public class Board extends JComponent {
         setChosenFigureBooleans();
         turnCounter++;
         isFigureChosen = false;
+        numberOfPlacedFigures++;
     }
 
     private void checkRedPlayerFigurePlacement() {
@@ -569,7 +623,6 @@ public class Board extends JComponent {
                 if (!checkIfThereIsRedPiece(clickedColumn, clickedRow)) {
 
                     if (chosenDwarf) {
-
                         if (redPlayer.getDwarfCounter() < 2) {
 
                             setRedDwarf();
@@ -577,7 +630,6 @@ public class Board extends JComponent {
                             whenFigureChosenSetValues();
                         }
                     } else if (chosenKnight) {
-
                         if (redPlayer.getKnightCounter() < 2) {
 
                             setRedKnight();
@@ -585,7 +637,6 @@ public class Board extends JComponent {
                             whenFigureChosenSetValues();
                         }
                     } else if (chosenElf) {
-
                         if (redPlayer.getElfCounter() < 2) {
 
                             setRedElf();
