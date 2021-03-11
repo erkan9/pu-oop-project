@@ -56,6 +56,11 @@ public class Board extends JComponent {
     boolean chosenElf = false;
     boolean chosenKnight = false;
 
+    public boolean isMovementChosen = false;
+    public boolean chosenAttack = false;
+    public boolean chosenMove = false;
+    public boolean chosenHeal = false;
+
     private Integer[][] BoardGrid;
 
     public Board() {
@@ -184,7 +189,7 @@ public class Board extends JComponent {
 
     private void visualiseFigureMovementMenu() {
 
-        if (numberOfPlacedFigures >= 12) {
+        if (numberOfPlacedFigures >= 4) {
 
             for (ChooseMovementMenu chooseMovementMenu : chooseMovement) {
 
@@ -200,7 +205,7 @@ public class Board extends JComponent {
 
     private void visualiseFigureMenu() {
 
-        if (numberOfPlacedFigures < 12) {
+        if (numberOfPlacedFigures < 4) {
 
             for (ChoosePieceMenu choosePieceMenu : this.choosePieceMenu) {
 
@@ -329,7 +334,7 @@ public class Board extends JComponent {
             g.setColor(Color.RED);
             g.drawString("Red player's turn", 700, 100);
 
-            if(numberOfPlacedFigures < 12) {
+            if(numberOfPlacedFigures < 4) {
                 g.drawString("Place figure", 715, 120);
                 drawRedPlayerAvailablePlacements(g);
             }
@@ -340,7 +345,7 @@ public class Board extends JComponent {
             g.setColor(Color.BLACK);
             g.drawString("Black player's turn", 700, 400);
 
-            if (numberOfPlacedFigures < 12) {
+            if (numberOfPlacedFigures < 4) {
                 g.drawString("Place a figure", 715, 420);
                 drawBlackPlayerAvailablePlacements(g);
             }
@@ -475,22 +480,59 @@ public class Board extends JComponent {
 
             boolean isRedTurn = checkPlayerTurn();
 
-            if(numberOfPlacedFigures >= 12) {
+            if(numberOfPlacedFigures >= 4) {
 
                 Piece clickedPiece = getPiece(clickedColumn, clickedRow);
 
                 figureLogic(clickedRow, clickedColumn, isRedTurn, clickedPiece);
-            }
 
-            logicForPlacingThePiecesOnBoard(isRedTurn);
+                if(isMovementChosen) {
+
+                    isMovementChosen = false;
+                }
+                else {
+                    checkIfFigureMovementChosen();
+                }
+            }
+            else {
+                logicForPlacingThePiecesOnBoard(isRedTurn);
+            }
 
             drawBoard();
         }
     };
 
+    private void checkIfFigureMovementChosen() {
+
+        if (clickedColumn == 11 && clickedRow == 3) {
+
+            chosenMove = true;
+            chosenHeal = false;
+            chosenAttack = false;
+
+            isMovementChosen = true;
+
+        } else if (clickedColumn == 11 && clickedRow == 2) {
+
+            chosenMove = false;
+            chosenHeal = true;
+            chosenAttack = false;
+
+            isMovementChosen = true;
+
+        } else if (clickedColumn == 11 && clickedRow == 4) {
+
+            chosenMove = false;
+            chosenHeal = false;
+            chosenAttack = true;
+
+            isMovementChosen = true;
+        }
+    }
+
     private void logicForPlacingThePiecesOnBoard(boolean isRedTurn) {
 
-        if(numberOfPlacedFigures < 12) {
+        if(numberOfPlacedFigures < 4) {
 
             figurePlacementLogic(isRedTurn);
 
