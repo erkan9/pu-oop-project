@@ -7,7 +7,7 @@ public class Obstacle {
     private int figureColumn;
     private int figureRow;
     private String figureFilePath;
-    public Board board;
+    private Board board;
 
     public Obstacle(int figureColumn, int figureRow, String figureFilePath, Board board) {
 
@@ -16,6 +16,8 @@ public class Obstacle {
         this.figureFilePath = figureFilePath;
         this.board = board;
     }
+
+    // Getters and Setters
 
     public int getFigureColumn() {
         return figureColumn;

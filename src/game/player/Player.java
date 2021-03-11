@@ -4,18 +4,26 @@ import game.board.Board;
 
 public class Player {
 
-    private int dwarfCounter;
-    private int knightCounter;
-    private int elfCounter;
+    protected int dwarfCounter;
+    protected int knightCounter;
+    protected int elfCounter;
 
-    //public Board board;
+    protected Board board;
 
+    /**
+     * Constructor
+     * @param dwarfCounter Counter for placed Dwarfs
+     * @param knightCounter Counter for placed Knights
+     * @param elfCounter Counter for placed Elves
+     */
     public Player(int dwarfCounter, int knightCounter, int elfCounter) {
 
         this.elfCounter = elfCounter;
         this.dwarfCounter = dwarfCounter;
         this.knightCounter = knightCounter;
     }
+
+    // Getters and Setters
 
     public int getDwarfCounter() {
         return dwarfCounter;

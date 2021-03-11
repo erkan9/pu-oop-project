@@ -4,11 +4,18 @@ import game.board.Board;
 
 public class Menu {
 
-    private int imageColumnPosition;
-    private int imageRowPosition;
-    private String imageFilePath;
-    public Board board;
+    protected int imageColumnPosition;
+    protected int imageRowPosition;
+    protected String imageFilePath;
+    protected Board board;
 
+    /**
+     * Constructor of the Menus
+     * @param imageColumnPosition The Column position of the images
+     * @param imageRowPosition The Row position of the images
+     * @param imageFilePath The File Path of the images
+     * @param board The Board
+     */
     public Menu(int imageColumnPosition, int imageRowPosition, String imageFilePath, Board board) {
 
         this.imageColumnPosition = imageColumnPosition;
@@ -16,6 +23,8 @@ public class Menu {
         this.imageFilePath = imageFilePath;
         this.board = board;
     }
+
+    // Getters and Setter
 
     public int getImageColumnPosition() {
         return imageColumnPosition;

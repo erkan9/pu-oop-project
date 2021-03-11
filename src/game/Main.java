@@ -2,6 +2,9 @@ package game;
 
 import game.board.BoardFrame;
 
+/**
+ * @author Erkan Kamber
+ */
 public class Main {
     
     public BoardFrame boardFrame;

@@ -16,8 +16,13 @@ import java.util.*;
 import javax.imageio.*;
 import javax.swing.*;
 
+
+//TODO Check if figure skipped OBSTACLE on MOVE
+//TODO Do end of game
 @SuppressWarnings("serial")
 public class Board extends JComponent {
+
+    Random random = new Random();
 
     private static final Image nullImage = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
     private final Font playerTurnFont = new Font("Tacoma", Font.PLAIN, 15);
@@ -89,6 +94,9 @@ public class Board extends JComponent {
         drawBoard();
     }
 
+    /**
+     * Method that sets the Menu for Choosing Figures
+     */
     private void setChooseFigureMenu() {
 
             choosePieceMenu.add(new ChoosePieceMenu(11, 3, "dwarf_menu.png", this));
@@ -96,6 +104,9 @@ public class Board extends JComponent {
             choosePieceMenu.add(new ChoosePieceMenu(11, 4, "elf_menu.png", this));
     }
 
+    /**
+     * Method that sets the Menu for Attack, Heal and Move
+     */
     private void setChooseFigureMovementMenu() {
 
             chooseMovement.add(new ChooseMovementMenu(11, 2, "heal_menu.png", this));
@@ -103,6 +114,9 @@ public class Board extends JComponent {
             chooseMovement.add(new ChooseMovementMenu(11, 4, "attack_menu.png", this));
     }
 
+    /**
+     * Method that sets new Lists
+     */
     private void setLists() {
 
         BoardGrid = new Integer[BOARD_ROWS][BOARD_COLUMNS];
@@ -115,6 +129,9 @@ public class Board extends JComponent {
         chooseMovement = new ArrayList<>();
     }
 
+    /**
+     * Method that sets the Board
+     */
     private void setBoard() {
 
         for (int column = 0; column < BOARD_ROWS; column++) {
@@ -126,9 +143,10 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that sets the obtacles on the BOard
+     */
     private void setObstaclesOnBoard() {
-
-        Random random = new Random();
 
         int numOfObstacles = random.nextInt(5) + 1;
 
@@ -144,6 +162,9 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that draws the Board
+     */
     private void drawBoard() {
 
         pieceGraphics.clear();
@@ -167,12 +188,17 @@ public class Board extends JComponent {
         this.repaint();
     }
 
+    /**
+     * Method that Loads the image of the Board
+     */
     private void boardImageLoad() {
 
         Image board = loadImage(boardFilePath);
         staticShapes.add(new DrawingImage(board, new Rectangle2D.Double(0, 0, board.getWidth(null), board.getHeight(null))));
     }
-
+    /**
+     * Method that Loads the background when Piece is chosen
+     */
     private void activePieceBackGround() {
 
         if (activePieces != null) {
@@ -187,6 +213,9 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that visualises the Movement menu
+     */
     private void visualiseFigureMovementMenu() {
 
         if (numberOfPlacedFigures >= 4) {
@@ -203,6 +232,9 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that visualises the Figure choosing menu
+     */
     private void visualiseFigureMenu() {
 
         if (numberOfPlacedFigures < 4) {
@@ -219,6 +251,9 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that visualises the obstacles
+     */
     private void visualiseObstacles() {
 
         for (Obstacle obstacle : obstacles) {
@@ -232,6 +267,9 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that visualises the Red pieces
+     */
     private void visualiseRedPieces() {
 
         for (Piece redPiece : redPieces) {
@@ -245,6 +283,9 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that visualises the Black pieces
+     */
     private void visualiseBlackPieces() {
 
         for (Piece blackPiece : blackPieces) {
@@ -258,26 +299,55 @@ public class Board extends JComponent {
         }
     }
 
-    public Piece getPiece(int x, int y) {
+    /**
+     *  Method that gets the Obstacles
+     * @param x clicked column
+     * @param y clicked row
+     * @return The obstacle
+     */
+    public Obstacle getObstacle(int x, int y) {
 
-        for (Piece p : redPieces) {
+        for (Obstacle obstacle : obstacles) {
 
-            if (p.getFigureColumn() == x && p.getFigureRow() == y) {
+            if (obstacle.getFigureColumn() == x && obstacle.getFigureRow() == y) {
 
-                return p;
-            }
-        }
-
-        for (Piece p : blackPieces) {
-
-            if (p.getFigureColumn() == x && p.getFigureRow() == y) {
-
-                return p;
+                return obstacle;
             }
         }
         return null;
     }
 
+    /**
+     *  Method that gets the Pieces
+     * @param x clicked column
+     * @param y clicked row
+     * @return The Piece
+     */
+    public Piece getPiece(int x, int y) {
+
+        for (Piece piece : redPieces) {
+
+            if (piece.getFigureColumn() == x && piece.getFigureRow() == y) {
+
+                return piece;
+            }
+        }
+
+        for (Piece piece : blackPieces) {
+
+            if (piece.getFigureColumn() == x && piece.getFigureRow() == y) {
+
+                return piece;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Method that loads the image
+     * @param imageFile image file
+     * @return the image
+     */
     private Image loadImage(String imageFile) {
 
         try {
@@ -290,6 +360,10 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that paints the components
+     * @param g Object of Graphics
+     */
     @Override
     protected void paintComponent(Graphics g) {
 
@@ -302,6 +376,10 @@ public class Board extends JComponent {
         drawPlayerTurn(g);
     }
 
+    /**
+     * Method that shows where Black player can place its figures
+     * @param g Object of Graphics
+     */
     private void drawBlackPlayerAvailablePlacements(Graphics g) {
 
         for (int i = 0; i < 9; i++) {
@@ -314,6 +392,10 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that shows where Red player can place its figures
+     * @param g Object of Graphics
+     */
     private void drawRedPlayerAvailablePlacements(Graphics g) {
 
         for (int i = 0; i < 9; i++) {
@@ -326,6 +408,10 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that shows which player's turn is
+     * @param g Object of Graphics
+     */
     private void drawPlayerTurn(Graphics g) {
 
         if (checkPlayerTurn()) {
@@ -335,6 +421,7 @@ public class Board extends JComponent {
             g.drawString("Red player's turn", 700, 100);
 
             if(numberOfPlacedFigures < 4) {
+
                 g.drawString("Place figure", 715, 120);
                 drawRedPlayerAvailablePlacements(g);
             }
@@ -346,17 +433,26 @@ public class Board extends JComponent {
             g.drawString("Black player's turn", 700, 400);
 
             if (numberOfPlacedFigures < 4) {
+
                 g.drawString("Place a figure", 715, 420);
                 drawBlackPlayerAvailablePlacements(g);
             }
         }
     }
 
+    /**
+     * Method that draws the background
+     * @param g2 Object of Graphics2D
+     */
     private void drawBackground(Graphics2D g2) {
+
         g2.setColor(getBackground());
         g2.fillRect(0, 0, getWidth(), getHeight());
     }
-
+    /**
+     * Method that draws the shapes
+     * @param g2 Object of Graphics2D
+     */
     private void drawShapes(Graphics2D g2) {
 
         for (DrawingShape shape : staticShapes) {
@@ -367,100 +463,160 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that checks which player's turn it is
+     */
     private boolean checkPlayerTurn() {
 
         return turnCounter % 2 == 1;
     }
 
-    private void figureLogic(int clickedRow, int clickedColumn, boolean isRedTurn, Piece clickedPiece) {
+    /**
+     * Method that does the entire logic of the pieces
+     * @param clickedRow The clicked Row
+     * @param clickedColumn The clicked Row
+     * @param isRedTurn If the figure is Red or Black
+     * @param clickedPiece The clicked Piece
+     * @param clickedObstacle The clicked Obstacle
+     */
+    private void figureLogic(int clickedRow, int clickedColumn, boolean isRedTurn, Piece clickedPiece, Obstacle clickedObstacle) {
 
-        if (activePieces == null && clickedPiece != null &&
-                ((isRedTurn && clickedPiece.isRed()) || (!isRedTurn && clickedPiece.isBlack()))) {
+        if (activePieces == null && clickedPiece != null && ((isRedTurn && clickedPiece.isRed()) || (!isRedTurn && clickedPiece.isBlack()))) {
 
-            activePieces = clickedPiece;
+                activePieces = clickedPiece;
 
-        } else if (activePieces != null && activePieces.getFigureColumn() == clickedColumn && activePieces.getFigureRow() == clickedRow) {
+        } else if (activePieces != null && activePieces.canMove(clickedColumn, clickedRow) && ((isRedTurn && activePieces.isRed()) || (!isRedTurn && activePieces.isBlack()))) {
 
-            activePieces = null;
+            if (chosenAttack || chosenMove) {
 
-        } else if (activePieces != null && activePieces.canMove(clickedColumn, clickedRow)
-                && ((isRedTurn && activePieces.isRed()) || (!isRedTurn && activePieces.isBlack()))) {
+                if (chosenAttack) {
 
-            if (clickedPiece != null) {
+                    if(clickedObstacle != null) {
 
-                if (clickedPiece.isRed()) {
+                        obstacles.remove(clickedObstacle);
+                    }
 
-                    redPieces.remove(clickedPiece);
+                    else if (clickedPiece.getPieceHealth() <= 0) {
 
+                        if (clickedPiece.isRed()) {
+
+                            redPieces.remove(clickedPiece);
+                            System.out.println("Red's Figure is killed");
+                        } else {
+
+                            blackPieces.remove(clickedPiece);
+                            System.out.println("Black's Figure is killed");
+                        }
+                    }
                 } else {
 
-                    blackPieces.remove(clickedPiece);
+                    // Do the figure move
+                    activePieces.setFigureColumn(clickedColumn);
+                    activePieces.setFigureRow(clickedRow);
+
+                    // if piece is a pawn set hasMoved to true
+                    if (activePieces.getClass().equals(Dwarf.class)) {
+
+                        Dwarf castedDwarf = (Dwarf) (activePieces);
+                        castedDwarf.setHasMoved(true);
+                    }
+                }
+                    activePieces = null;
+                    turnCounter++;
+
+            }
+            else if(chosenHeal) {
+
+                int randomNum = random.nextInt(5);
+
+                System.out.printf("The rolled number to check for Second turn is: [%d]\n",randomNum);
+
+                if(randomNum % 2 != 0) {
+
+                    activePieces = null;
+                    turnCounter++;
                 }
             }
+        }
+        else if (activePieces != null && activePieces.getFigureColumn() == clickedColumn && activePieces.getFigureRow() == clickedRow) {
 
-            // Do the figure move
-            activePieces.setFigureColumn(clickedColumn);
-            activePieces.setFigureRow(clickedRow);
-
-            // if piece is a pawn set hasMoved to true
-            if (activePieces.getClass().equals(Dwarf.class)) {
-
-                Dwarf castedDwarf = (Dwarf) (activePieces);
-                castedDwarf.setHasMoved(true);
-            }
             activePieces = null;
-            turnCounter++;
+
         }
     }
 
+    /**
+     * Method that sets a Black Dwarf
+     */
     private void setBlackDwarf() {
 
-        blackPieces.add(new Dwarf(clickedColumn, clickedRow, false, "Dwarf.png", this));
+        blackPieces.add(new Dwarf(clickedColumn, clickedRow, false, "Dwarf.png", this,
+                6,2,12));
 
         visualiseBlackPieces();
 
         System.out.printf("Placed 'Black' Dwarf [%d][%d]  || ", clickedColumn, clickedRow);
     }
 
+    /**
+     * Method that sets a Black Knight
+     */
     private void setBlackKnight() {
 
-        blackPieces.add(new Knight(clickedColumn, clickedRow, false, "Knight.png", this));
+        blackPieces.add(new Knight(clickedColumn, clickedRow, false, "Knight.png", this,
+                8, 3, 15));
 
         visualiseBlackPieces();
 
         System.out.printf("Placed 'Black' Knight [%d][%d] || ", clickedColumn, clickedRow);
     }
 
+    /**
+     * Method that sets a Black Elf
+     */
     private void setBlackElf() {
 
-        blackPieces.add(new Elf(clickedColumn, clickedRow, false, "Elf.png", this));
+        blackPieces.add(new Elf(clickedColumn, clickedRow, false, "Elf.png", this,
+                5, 1 , 10));
 
         visualiseBlackPieces();
 
         System.out.printf("Placed 'Black' Elf [%d][%d]    || ", clickedColumn, clickedRow);
     }
 
+    /**
+     * Method that sets a Red Dwarf
+     */
     private void setRedDwarf() {
 
-        redPieces.add(new Dwarf(clickedColumn, clickedRow, true, "Dwarf.png", this));
+        redPieces.add(new Dwarf(clickedColumn, clickedRow, true, "Dwarf.png", this,
+                6,2,12));
 
         visualiseRedPieces();
 
         System.out.printf("Placed 'Red' Dwarf [%d][%d]\n", clickedColumn, clickedRow);
     }
 
+    /**
+     * Method that sets a Red Knight
+     */
     private void setRedKnight() {
 
-        redPieces.add(new Knight(clickedColumn, clickedRow, true, "Knight.png", this));
+        redPieces.add(new Knight(clickedColumn, clickedRow, true, "Knight.png", this,
+                8, 3, 15));
 
         visualiseRedPieces();
 
         System.out.printf("Placed 'Red' Knight [%d][%d]\n", clickedColumn, clickedRow);
     }
 
+    /**
+     * Method that sets a Red Elf
+     */
     private void setRedElf() {
 
-        redPieces.add(new Elf(clickedColumn, clickedRow, true, "Elf.png", this));
+        redPieces.add(new Elf(clickedColumn, clickedRow, true, "Elf.png", this,
+                5, 1 , 10));
 
         visualiseRedPieces();
 
@@ -469,6 +625,10 @@ public class Board extends JComponent {
 
     MouseAdapter mouseAdapter = new MouseAdapter() {
 
+        /**
+         * Method that checks where the mouse is Clicked
+         * @param e Object of MouseEvent
+         */
         @Override
         public void mousePressed(MouseEvent e) {
 
@@ -483,15 +643,16 @@ public class Board extends JComponent {
             if(numberOfPlacedFigures >= 4) {
 
                 Piece clickedPiece = getPiece(clickedColumn, clickedRow);
+                Obstacle clickedObstacle = getObstacle(clickedColumn, clickedRow);
 
-                figureLogic(clickedRow, clickedColumn, isRedTurn, clickedPiece);
+                figureLogic(clickedRow, clickedColumn, isRedTurn, clickedPiece, clickedObstacle);
 
                 if(isMovementChosen) {
 
                     isMovementChosen = false;
                 }
                 else {
-                    checkIfFigureMovementChosen();
+                    checkIfFigureActionChosen();
                 }
             }
             else {
@@ -502,7 +663,10 @@ public class Board extends JComponent {
         }
     };
 
-    private void checkIfFigureMovementChosen() {
+    /**
+     * Method that checks if the figure action is chosen
+     */
+    private void checkIfFigureActionChosen() {
 
         if (clickedColumn == 11 && clickedRow == 3) {
 
@@ -530,6 +694,10 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that checks the number of Placing Figures
+     * @param isRedTurn If the figure is Red or Black
+     */
     private void logicForPlacingThePiecesOnBoard(boolean isRedTurn) {
 
         if(numberOfPlacedFigures < 4) {
@@ -540,6 +708,10 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that is does the logic for the Placement of the Figures
+     * @param isRedTurn If the Figure is Red or Black
+     */
     private void figurePlacementLogic(boolean isRedTurn) {
 
         if (!isRedTurn) {
@@ -552,6 +724,9 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that checks what type of Piece is chosen to be placed
+     */
     private void checkIfFigureIsChosen() {
 
         if (clickedColumn == 11 && clickedRow == 3) {
@@ -580,6 +755,9 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that sets the Figure placing booleans to false
+     */
     private void setChosenFigureBooleans() {
 
         chosenDwarf = false;
@@ -587,6 +765,9 @@ public class Board extends JComponent {
         chosenElf = false;
     }
 
+    /**
+     * Method that checks Black player's placement
+     */
     private void checkBlackPlayerFigurePlacement() {
 
         if (isFigureChosen) {
@@ -622,6 +803,53 @@ public class Board extends JComponent {
         }
     }
 
+    /**
+     * Method that checks Red player's placement
+     */
+    private void checkRedPlayerFigurePlacement() {
+
+        if (isFigureChosen) {
+
+            if (clickedRow <= 1 && clickedColumn <= 8) {
+
+                if (!checkIfThereIsRedPiece(clickedColumn, clickedRow)) {
+
+                    if (chosenDwarf) {
+
+                        if (redPlayer.getDwarfCounter() < 2) {
+
+                            setRedDwarf();
+                            redPlayer.setDwarfCounter(redPlayer.getDwarfCounter() + 1);
+                            whenFigureChosenSetValues();
+                        }
+                    } else if (chosenKnight) {
+
+                        if (redPlayer.getKnightCounter() < 2) {
+
+                            setRedKnight();
+                            redPlayer.setKnightCounter(redPlayer.getKnightCounter() + 1);
+                            whenFigureChosenSetValues();
+                        }
+                    } else if (chosenElf) {
+
+                        if (redPlayer.getElfCounter() < 2) {
+
+                            setRedElf();
+                            redPlayer.setElfCounter(redPlayer.getElfCounter() + 1);
+                            whenFigureChosenSetValues();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     *  Method that checks if There is a Black piece
+     * @param clickedColumn The clicked Column
+     * @param clickedRow The clicked Row
+     * @return The boolean if there is a figure
+     */
     private boolean checkIfThereIsBlackPiece(int clickedColumn, int clickedRow) {
 
         for (Piece p : blackPieces) {
@@ -635,6 +863,12 @@ public class Board extends JComponent {
         return false;
     }
 
+    /**
+     *  Method that checks if There is a Red piece
+     * @param clickedColumn The clicked Column
+     * @param clickedRow The clicked Row
+     * @return The boolean if there is a figure
+     */
     private boolean checkIfThereIsRedPiece(int clickedColumn, int clickedRow) {
 
         for (Piece p : redPieces) {
@@ -648,6 +882,9 @@ public class Board extends JComponent {
         return false;
     }
 
+    /**
+     * Method that set values when figure is chosen and placed
+     */
     private void whenFigureChosenSetValues() {
 
         setChosenFigureBooleans();
@@ -656,41 +893,9 @@ public class Board extends JComponent {
         numberOfPlacedFigures++;
     }
 
-    private void checkRedPlayerFigurePlacement() {
-
-        if (isFigureChosen) {
-
-            if (clickedRow <= 1 && clickedColumn <= 8) {
-
-                if (!checkIfThereIsRedPiece(clickedColumn, clickedRow)) {
-
-                    if (chosenDwarf) {
-                        if (redPlayer.getDwarfCounter() < 2) {
-
-                            setRedDwarf();
-                            redPlayer.setDwarfCounter(redPlayer.getDwarfCounter() + 1);
-                            whenFigureChosenSetValues();
-                        }
-                    } else if (chosenKnight) {
-                        if (redPlayer.getKnightCounter() < 2) {
-
-                            setRedKnight();
-                            redPlayer.setKnightCounter(redPlayer.getKnightCounter() + 1);
-                            whenFigureChosenSetValues();
-                        }
-                    } else if (chosenElf) {
-                        if (redPlayer.getElfCounter() < 2) {
-
-                            setRedElf();
-                            redPlayer.setElfCounter(redPlayer.getElfCounter() + 1);
-                            whenFigureChosenSetValues();
-                        }
-                    }
-                }
-            }
-        }
-    }
-
+    /**
+     * Interface for Drawing the Shapes
+     */
     interface DrawingShape {
 
         void draw(Graphics2D g2);
@@ -701,12 +906,21 @@ public class Board extends JComponent {
         public Image image;
         public Rectangle2D rect;
 
+        /**
+         * Constructor
+         * @param image The Image
+         * @param rect The rectangle
+         */
         public DrawingImage(Image image, Rectangle2D rect) {
 
             this.image = image;
             this.rect = rect;
         }
 
+        /**
+         * Method that draws the bounds
+         * @param g2 Object of Graphics2D
+         */
         @Override
         public void draw(Graphics2D g2) {
 

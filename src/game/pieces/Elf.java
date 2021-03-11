@@ -4,70 +4,121 @@ import game.board.Board;
 
 public class Elf extends Piece {
 
-    private boolean hasFigureMoved;
+    /**
+     * Constructor
+     * @param figureColumn The Column of the chosen figure
+     * @param figureRow  The Row of the chosen figure
+     * @param isFigureRed If the figure is Red or Black
+     * @param figureFilePath The image path of the figure
+     * @param board The board that it is placed
+     * @param pieceAttack The attack power of the piece
+     * @param pieceShield The shield power of the piece
+     * @param pieceHealth The health of the piece
+     */
+    public Elf(int figureColumn, int figureRow, boolean isFigureRed, String figureFilePath, Board board,
+                 int pieceAttack, int pieceShield, int pieceHealth) {
 
-    public Elf(int figureColumn, int figureRow, boolean isFigureRed, String figureFilePath, Board board) {
-        
-        super(figureColumn, figureRow, isFigureRed, figureFilePath, board);
+        super(figureColumn, figureRow, isFigureRed, figureFilePath, board, pieceAttack, pieceShield, pieceHealth);
     }
 
-    public void setHasMoved(boolean hasMoved)
-    {
-        this.hasFigureMoved = hasMoved;
-    }
-
-    public boolean getHasMoved()
-    {
-        return hasFigureMoved;
-    }
-
+    /**
+     * Method that checks if player can move, heal or attack
+     * @param destinationColumn Column that the players want to place it's figure
+     * @param destinationRow    Row that the players want to place it's figure
+     * @return If it is possible to move, heal or attack
+     */
     @Override
-    public boolean canMove(int destinationColumn, int destinationRow){
+    public boolean canMove(int destinationColumn, int destinationRow) {
 
-        Piece isTherePiece = board.getPiece(destinationColumn, destinationRow);
+        Piece isTherePiece = this.board.getPiece(destinationColumn, destinationRow);
+        Obstacle isThereObstacle = this.board.getObstacle(destinationColumn, destinationRow);
 
-        if(board.isMovementChosen) {
+        if (this.board.isMovementChosen) {
 
-            if (board.chosenMove) {
+            if (this.board.chosenMove) {
 
-                if (isTherePiece != null) {
+                return checkIfMovementIsAvailable(destinationColumn, destinationRow, isTherePiece);
 
-                    if(!isThereYourFigure(isTherePiece)) {
+            } else if (this.board.chosenHeal) {
 
-                        System.out.println("You can't do that");
-                        return false;
-                    }
-                }
-                return isElfCanBeMoved(destinationColumn, destinationRow);
-            }
-            if (board.chosenHeal) {
+                return healFigure(destinationColumn, destinationRow);
 
-                System.out.println("I checked for Heal, figure is not moved");
-                return false;
-            }
-            if (board.chosenAttack) {
+            } else if (this.board.chosenAttack) {
 
-                System.out.println("I checked for Attack, figure is not moved");
-                return false;
+                return checkAttackedPieceType(destinationColumn, destinationRow, isTherePiece, isThereObstacle);
             }
         }
         return false;
     }
 
     /**
-     * Method that was created to check if can kill own figures, then changed so cant kill any figures
-     * @param isTherePiece Object that contains information about the place where i want to but my figure
-     * @return boolean to check if I can put it there
+     * Method that checks if the players wants to place on it's figure
+     * @param destinationColumn Column that the players want to place it's figure
+     * @param destinationRow    Row that the players want to place it's figure
+     * @param isTherePiece      The piece that will be attacked
+     * @return If the knight can be moved
      */
-    private boolean isThereYourFigure(Piece isTherePiece) {
+    private boolean checkIfMovementIsAvailable(int destinationColumn, int destinationRow, Piece isTherePiece) {
 
-        if (isTherePiece.isRed() && this.isRed()) {
+        if (isTherePiece != null) {
 
-            return false;
+            if (!isThereYourFigure(isTherePiece)) {
+
+                System.out.println("You can't do that");
+
+                return false;
+            }
         }
-        isTherePiece.isBlack();
+        return isElfCanBeMoved(destinationColumn, destinationRow);
+    }
 
+    /**
+     * Method that checks what type of Piece the Player is attacking
+     * @param destinationColumn Column that the players want to place it's figure
+     * @param destinationRow    Row that the players want to place it's figure
+     * @param isTherePiece      The piece that will be attacked
+     * @param isThereObstacle   The obstacle that will be attacked
+     * @return If the player is attacking obstacle or a piece
+     */
+    private boolean checkAttackedPieceType(int destinationColumn, int destinationRow, Piece isTherePiece, Obstacle isThereObstacle) {
+
+        this.sumOfDices = 0;
+
+        if (isThereObstacle != null && checkIfElfCanAttack(destinationColumn, destinationRow)) {
+
+            return true;
+        }
+        return canElfAttackFigure(destinationColumn, destinationRow, isTherePiece);
+    }
+
+    /**
+     * Method that checks if the Attack is possible
+     *
+     * @param destinationColumn Column that the players want to place it's figure
+     * @param destinationRow    Row that the players want to place it's figure
+     * @param isTherePiece      The piece that will be attacked
+     */
+    private boolean canElfAttackFigure(int destinationColumn, int destinationRow, Piece isTherePiece) {
+
+        if (checkIfElfCanAttack(destinationColumn, destinationRow)) {
+
+           calculateDamageOfAttackedFigure(isTherePiece);
+
+            return true;
+        }
         return false;
+    }
+
+    /**
+     * Method that checks if the Elf is attacking correctly
+     * @param destinationColumn Column that the players want to place its figure
+     * @param destinationRow Row that the players want to place its figure
+     * @return If it is attacking correctly
+     */
+    private boolean checkIfElfCanAttack(int destinationColumn, int destinationRow) {
+
+        return isElfMovingNorthOrSouth(destinationColumn, destinationRow) ||
+                isElfMovingWestOrEast(destinationColumn, destinationRow);
     }
 
     /**
