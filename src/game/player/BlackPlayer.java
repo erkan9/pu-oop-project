@@ -8,8 +8,8 @@ public class BlackPlayer extends Player{
      * @param knightCounter Counter for placed Knights
      * @param elfCounter Counter for placed Elves
      */
-    public BlackPlayer(int dwarfCounter, int knightCounter, int elfCounter) {
+    public BlackPlayer(int dwarfCounter, int knightCounter, int elfCounter, int points) {
 
-        super(dwarfCounter, knightCounter, elfCounter);
+        super(dwarfCounter, knightCounter, elfCounter, points);
     }
 }

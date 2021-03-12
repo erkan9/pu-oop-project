@@ -6,33 +6,38 @@ import java.util.Random;
 
 public class Piece {
 
+    protected Board board;
     protected Random random = new Random();
 
     protected int randomNumber;
     protected int sumOfDices;
+
     protected int calculateDamage;
     protected int calculateHealthToAdd;
+    protected int calculatePointsToAdd;
+
     protected int pieceAttack;
     protected int pieceShield;
     protected int pieceHealth;
+
     protected int figureColumn;
     protected int figureRow;
 
-    final protected boolean isFigureRed;
-
     protected String figureFilePath;
-    protected Board board;
+
+    protected boolean isFigureRed;
 
     /**
      * Constructor
-     * @param figureColumn The Column of the chosen figure
-     * @param figureRow  The Row of the chosen figure
-     * @param isFigureRed If the figure is Red or Black
+     *
+     * @param figureColumn   The Column of the chosen figure
+     * @param figureRow      The Row of the chosen figure
+     * @param isFigureRed    If the figure is Red or Black
      * @param figureFilePath The image path of the figure
-     * @param board The board that it is placed
-     * @param pieceAttack The attack power of the piece
-     * @param pieceShield The shield power of the piece
-     * @param pieceHealth The health of the piece
+     * @param board          The board that it is placed
+     * @param pieceAttack    The attack power of the piece
+     * @param pieceShield    The shield power of the piece
+     * @param pieceHealth    The health of the piece
      */
     public Piece(int figureColumn, int figureRow, boolean isFigureRed, String figureFilePath, Board board,
                  int pieceAttack, int pieceShield, int pieceHealth) {
@@ -65,39 +70,37 @@ public class Piece {
         this.pieceHealth = pieceHealth;
     }
 
-    public String getFilePath()
-    {
+    public String getFilePath() {
         return figureFilePath;
     }
 
-    public boolean isRed()
-    {
+    public boolean isRed() {
         return isFigureRed;
     }
-    
-    public boolean isBlack()
-    {
+
+    public boolean isBlack() {
         return !isFigureRed;
     }
-    
-    public void setFigureColumn(int figureColumn)
-    {
+
+    public int getFigureColumn() {
+        return figureColumn;
+    }
+
+    public void setFigureColumn(int figureColumn) {
         this.figureColumn = figureColumn;
     }
-    
-    public void setFigureRow(int figureRow)
-    {
-        this.figureRow = figureRow;
-    }
-    
-    public int getFigureColumn() { return figureColumn; }
-    
-    public int getFigureRow()
-    {
+
+    public int getFigureRow() {
         return figureRow;
     }
-    
-    public boolean canMove(int destinationColumn, int destinationRow)  { return false; }
+
+    public void setFigureRow(int figureRow) {
+        this.figureRow = figureRow;
+    }
+
+    public boolean canMove(int destinationColumn, int destinationRow) {
+        return false;
+    }
 
     /**
      * Method that rolls 3 dices to check if the player attacked a figure
@@ -108,26 +111,27 @@ public class Piece {
 
             this.randomNumber = random.nextInt(6);
 
-            this.sumOfDices +=  this.randomNumber;
+            this.sumOfDices += this.randomNumber;
         }
-        System.out.printf("\nThe Sum of the rolled 3 dices is:[%d]\n", this.sumOfDices);
+        System.out.printf("\nThe Sum of the rolled 3 dices is: [%d]\n", this.sumOfDices);
     }
 
     /**
      * Method that checks if the figure can be healed and heals it
+     *
      * @param destinationColumn Column that the players want to place it's figure
      * @param destinationRow    Row that the players want to place it's figure
      * @return The result of the check if the figure can be healed
      */
     protected boolean healFigure(int destinationColumn, int destinationRow) {
 
-        this.randomNumber =  this.random.nextInt(6) + 1;
+        this.randomNumber = this.random.nextInt(6) + 1;
 
         if (this.getFigureColumn() == destinationColumn && this.getFigureRow() == destinationRow) {
 
             System.out.printf("\nHealth of the Figure before Heal is: [%d]\n", this.getPieceHealth());
 
-            this.calculateHealthToAdd = this.getPieceHealth() +  this.randomNumber;
+            this.calculateHealthToAdd = this.getPieceHealth() + this.randomNumber;
 
             this.setPieceHealth(this.calculateHealthToAdd);
 
@@ -179,12 +183,47 @@ public class Piece {
         return false;
     }
 
+    /**
+     * Method that calculates the damage done and health of the attacked figure
+     * @param isTherePiece The figure that is being attacked
+     */
     protected void calculateDamageOfAttackedFigure(Piece isTherePiece) {
 
         this.calculateDamage = isTherePiece.getPieceHealth() - (this.getPieceAttack() - isTherePiece.getPieceShield());
 
+        this.calculatePointsToAdd = (this.getPieceAttack() - isTherePiece.getPieceShield());
+
         rollDicesToAttacked();
 
         checkIfAttacked(isTherePiece);
+
+        addDamageAsPoints();
+    }
+
+    /**
+     * Method that adds the done damage as points to the player that attacked
+     */
+    public void addDamageAsPoints() {
+
+        boolean isRedsTurn = board.checkPlayerTurn();
+
+        int pointsToAdd;
+
+        if (isRedsTurn) {
+
+            pointsToAdd = board.redPlayer.getPoints() + calculatePointsToAdd;
+
+            board.redPlayer.setPoints(pointsToAdd);
+
+            System.out.printf("\n[%d] Points added to Red Player\n", calculatePointsToAdd);
+
+        } else {
+
+            pointsToAdd = board.blackPlayer.getPoints() + calculatePointsToAdd;
+
+            board.blackPlayer.setPoints(pointsToAdd);
+
+            System.out.printf("\n[%d] - Points are added to Black Player\n", calculatePointsToAdd);
+        }
     }
 }
