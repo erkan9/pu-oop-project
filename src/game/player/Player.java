@@ -8,6 +8,7 @@ public class Player {
     protected int knightCounter;
     protected int elfCounter;
     protected int points;
+    protected int killedPieces;
 
     protected Board board;
 
@@ -17,12 +18,13 @@ public class Player {
      * @param knightCounter Counter for placed Knights
      * @param elfCounter Counter for placed Elves
      */
-    public Player(int dwarfCounter, int knightCounter, int elfCounter, int points) {
+    public Player(int dwarfCounter, int knightCounter, int elfCounter, int points, int killedPieces) {
 
         this.elfCounter = elfCounter;
         this.dwarfCounter = dwarfCounter;
         this.knightCounter = knightCounter;
         this.points = points;
+        this.killedPieces = killedPieces;
     }
 
     // Getters and Setters
@@ -54,4 +56,8 @@ public class Player {
     public int getPoints() { return points; }
 
     public void setPoints(int points) { this.points = points; }
+
+    public int getKilledPieces() { return killedPieces; }
+
+    public void setKilledPieces(int killedPieces) { this.killedPieces = killedPieces; }
 }

@@ -1,104 +1,79 @@
 package game.board;
 
-import game.menu.ChoosePieceMenu;
+import game.killedpiece.KilledPiece;
 import game.menu.ChooseMovementMenu;
-import game.pieces.*;
+import game.menu.ChoosePieceMenu;
+import game.piece.*;
 import game.player.BlackPlayer;
 import game.player.Player;
 import game.player.RedPlayer;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.*;
-import java.awt.image.*;
-import java.io.*;
-import java.util.*;
-import javax.imageio.*;
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Random;
 
+import static javax.swing.JOptionPane.showMessageDialog;
 
 //TODO Check if figure skipped OBSTACLE on MOVE
-//TODO Refactor movement logic [too big]
 
-//TODO Put killed pieces in somewhere for end
+//TODO Refactor
 @SuppressWarnings("serial")
 public class Board extends JComponent {
 
+    Random random = new Random();
     private static final Image nullImage = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
     private final Font playerTurnFont = new Font("Tacoma", Font.PLAIN, 15);
     private final String boardFilePath = "images" + File.separator + "board.png";
+
     private final byte SQUARE_WIDTH = 65;
     private final byte IMAGE_OFFSET = 10;
     private final int BOARD_ROWS = 7;
     private final int BOARD_COLUMNS = 9;
+
     public int turnCounter = 0;
     public int roundCounter = 0;
+    private int numberOfPlacedFigures = 0;
+
     public ArrayList<Piece> redPieces;
     public ArrayList<Piece> blackPieces;
     public ArrayList<Obstacle> obstacles;
     public ArrayList<ChoosePieceMenu> choosePieceMenu;
     public ArrayList<ChooseMovementMenu> chooseMovement;
+
+    KilledPiece redPLayerKilledPiece;
+    KilledPiece blackPLayerKilledPiece;
+
     public ArrayList<DrawingShape> staticShapes;
     public ArrayList<DrawingShape> pieceGraphics;
+
     public Piece activePieces;
     public Player redPlayer;
     public Player blackPlayer;
+
     public boolean isMovementChosen = false;
     public boolean chosenAttack = false;
     public boolean chosenMove = false;
     public boolean chosenHeal = false;
-    Random random = new Random();
+
     boolean isFigureChosen = false;
     boolean chosenDwarf = false;
     boolean chosenElf = false;
     boolean chosenKnight = false;
-    private int numberOfPlacedFigures = 0;
+
     private int clickedColumn;
     private int clickedRow;
 
-    MouseAdapter mouseAdapter = new MouseAdapter() {
-
-        /**
-         * Method that checks where the mouse is Clicked
-         * @param e Object of MouseEvent
-         */
-        @Override
-        public void mousePressed(MouseEvent e) {
-
-            int mouseXCoordinate = e.getX();
-            int mouseYCoordinate = e.getY();
-
-            clickedColumn = mouseXCoordinate / SQUARE_WIDTH;
-            clickedRow = mouseYCoordinate / SQUARE_WIDTH;
-
-            boolean isRedTurn = checkPlayerTurn();
-
-            if (numberOfPlacedFigures >= 4) {
-
-                Piece clickedPiece = getPiece(clickedColumn, clickedRow);
-                Obstacle clickedObstacle = getObstacle(clickedColumn, clickedRow);
-
-                figureLogic(clickedRow, clickedColumn, isRedTurn, clickedPiece, clickedObstacle);
-
-                if (isMovementChosen) {
-
-                    isMovementChosen = false;
-                } else {
-                    checkIfFigureActionChosen();
-                }
-            } else {
-                logicForPlacingThePiecesOnBoard(isRedTurn);
-            }
-
-            drawBoard();
-        }
-    };
     private Integer[][] BoardGrid;
 
     public Board() {
-
-        blackPlayer = new BlackPlayer(0, 0, 0, 0);
-        redPlayer = new RedPlayer(0, 0, 0, 0);
 
         setLists();
 
@@ -146,6 +121,9 @@ public class Board extends JComponent {
      */
     private void setLists() {
 
+        blackPlayer = new BlackPlayer(0, 0, 0, 0,0);
+        redPlayer = new RedPlayer(0, 0, 0, 0,0);
+
         BoardGrid = new Integer[BOARD_ROWS][BOARD_COLUMNS];
         staticShapes = new ArrayList();
         pieceGraphics = new ArrayList();
@@ -154,6 +132,9 @@ public class Board extends JComponent {
         obstacles = new ArrayList<>();
         choosePieceMenu = new ArrayList<>();
         chooseMovement = new ArrayList<>();
+
+        redPLayerKilledPiece = new KilledPiece();
+        blackPLayerKilledPiece = new KilledPiece();
     }
 
     /**
@@ -562,11 +543,18 @@ public class Board extends JComponent {
                         if (clickedPiece.isRed()) {
 
                             redPieces.remove(clickedPiece);
-                            System.out.println("Red's Figure is killed");
+                            redPLayerKilledPiece.add(clickedPiece.getClass().getSimpleName());
+                            System.out.println("Red's Figure is killed\n");
+
+                            redPlayer.setKilledPieces(redPlayer.getKilledPieces() + 1);
+
                         } else {
 
                             blackPieces.remove(clickedPiece);
-                            System.out.println("Black's Figure is killed");
+                            blackPLayerKilledPiece.add(clickedPiece.getClass().getSimpleName());
+                            System.out.println("Black's Figure is killed\n");
+
+                            blackPlayer.setKilledPieces(blackPlayer.getKilledPieces() + 1);
                         }
                     }
                 } else {
@@ -601,6 +589,33 @@ public class Board extends JComponent {
 
             activePieces = null;
 
+        }
+    }
+
+    /**
+     * Method that outputs the Working phones at the Console
+     */
+    private void getRedKilledPieces() {
+
+        for (int index = 0; index < 5; index++) {
+
+            if (this.redPLayerKilledPiece.get(index) != null) {
+
+                System.out.printf("[%s] - Killed Red Piece ", this.redPLayerKilledPiece.get(index));
+            }
+        }
+    }
+    /**
+     * Method that outputs the Working phones at the Console
+     */
+    private void getBlackKilledPieces() {
+
+        for (int index = 0; index < 5; index++) {
+
+            if (this.blackPLayerKilledPiece.get(index) != null) {
+
+                System.out.printf("\n[%s] - Killed Black Piece ", this.blackPLayerKilledPiece.get(index));
+            }
         }
     }
 
@@ -681,6 +696,61 @@ public class Board extends JComponent {
 
         System.out.printf("Placed 'Red' Elf [%d][%d]\n", clickedColumn, clickedRow);
     }
+
+    MouseAdapter mouseAdapter = new MouseAdapter() {
+
+        /**
+         * Method that checks where the mouse is Clicked
+         * @param e Object of MouseEvent
+         */
+        @Override
+        public void mousePressed(MouseEvent e) {
+
+            int mouseXCoordinate = e.getX();
+            int mouseYCoordinate = e.getY();
+
+            clickedColumn = mouseXCoordinate / SQUARE_WIDTH;
+            clickedRow = mouseYCoordinate / SQUARE_WIDTH;
+
+            boolean isRedTurn = checkPlayerTurn();
+
+            if (numberOfPlacedFigures >= 4) {
+
+                Piece clickedPiece = getPiece(clickedColumn, clickedRow);
+                Obstacle clickedObstacle = getObstacle(clickedColumn, clickedRow);
+
+                figureLogic(clickedRow, clickedColumn, isRedTurn, clickedPiece, clickedObstacle);
+
+                if (isMovementChosen) {
+
+                    isMovementChosen = false;
+                } else {
+                    checkIfFigureActionChosen();
+                }
+            }
+            else {
+                logicForPlacingThePiecesOnBoard(isRedTurn);
+            }
+
+            if (redPlayer.getKilledPieces() >= 1 || blackPlayer.getKilledPieces() >= 1) {
+
+                showMessageDialog(null, "GAME OVER, CHECK CONSOLE FOR INFORMATION");
+
+                getBlackKilledPieces();
+                getRedKilledPieces();
+
+                setLists();
+                turnCounter = 0;
+                roundCounter = 0;
+                numberOfPlacedFigures = 0;
+                setObstaclesOnBoard();
+                setChooseFigureMenu();
+                setChooseFigureMovementMenu();
+
+            }
+            drawBoard();
+        }
+    };
 
     /**
      * Method that checks if the figure action is chosen
@@ -797,29 +867,38 @@ public class Board extends JComponent {
 
                 if (!checkIfThereIsBlackPiece(clickedColumn, clickedRow)) {
 
-                    if (chosenDwarf) {
-
-                        if (blackPlayer.getDwarfCounter() < 2) {
-                            setBlackDwarf();
-                            blackPlayer.setDwarfCounter(blackPlayer.getDwarfCounter() + 1);
-                            whenFigureChosenSetValues();
-                        }
-                    } else if (chosenKnight) {
-
-                        if (blackPlayer.getKnightCounter() < 2) {
-                            setBlackKnight();
-                            blackPlayer.setKnightCounter(blackPlayer.getKnightCounter() + 1);
-                            whenFigureChosenSetValues();
-                        }
-                    } else if (chosenElf) {
-
-                        if (blackPlayer.getElfCounter() < 2) {
-                            setBlackElf();
-                            blackPlayer.setElfCounter(blackPlayer.getElfCounter() + 1);
-                            whenFigureChosenSetValues();
-                        }
-                    }
+                    checkChosenFigureForBlack();
                 }
+            }
+        }
+    }
+
+
+    /**
+     * Method that checks which figure the Black Player choose
+     */
+    private void checkChosenFigureForBlack() {
+
+        if (chosenDwarf) {
+
+            if (blackPlayer.getDwarfCounter() < 2) {
+                setBlackDwarf();
+                blackPlayer.setDwarfCounter(blackPlayer.getDwarfCounter() + 1);
+                whenFigureChosenSetValues();
+            }
+        } else if (chosenKnight) {
+
+            if (blackPlayer.getKnightCounter() < 2) {
+                setBlackKnight();
+                blackPlayer.setKnightCounter(blackPlayer.getKnightCounter() + 1);
+                whenFigureChosenSetValues();
+            }
+        } else if (chosenElf) {
+
+            if (blackPlayer.getElfCounter() < 2) {
+                setBlackElf();
+                blackPlayer.setElfCounter(blackPlayer.getElfCounter() + 1);
+                whenFigureChosenSetValues();
             }
         }
     }
@@ -835,32 +914,40 @@ public class Board extends JComponent {
 
                 if (!checkIfThereIsRedPiece(clickedColumn, clickedRow)) {
 
-                    if (chosenDwarf) {
-
-                        if (redPlayer.getDwarfCounter() < 2) {
-
-                            setRedDwarf();
-                            redPlayer.setDwarfCounter(redPlayer.getDwarfCounter() + 1);
-                            whenFigureChosenSetValues();
-                        }
-                    } else if (chosenKnight) {
-
-                        if (redPlayer.getKnightCounter() < 2) {
-
-                            setRedKnight();
-                            redPlayer.setKnightCounter(redPlayer.getKnightCounter() + 1);
-                            whenFigureChosenSetValues();
-                        }
-                    } else if (chosenElf) {
-
-                        if (redPlayer.getElfCounter() < 2) {
-
-                            setRedElf();
-                            redPlayer.setElfCounter(redPlayer.getElfCounter() + 1);
-                            whenFigureChosenSetValues();
-                        }
-                    }
+                    checkChosenFigureForRed();
                 }
+            }
+        }
+    }
+
+    /**
+     * Method that checks which figure the Red Player choose
+     */
+    private void checkChosenFigureForRed() {
+
+        if (chosenDwarf) {
+
+            if (redPlayer.getDwarfCounter() < 2) {
+
+                setRedDwarf();
+                redPlayer.setDwarfCounter(redPlayer.getDwarfCounter() + 1);
+                whenFigureChosenSetValues();
+            }
+        } else if (chosenKnight) {
+
+            if (redPlayer.getKnightCounter() < 2) {
+
+                setRedKnight();
+                redPlayer.setKnightCounter(redPlayer.getKnightCounter() + 1);
+                whenFigureChosenSetValues();
+            }
+        } else if (chosenElf) {
+
+            if (redPlayer.getElfCounter() < 2) {
+
+                setRedElf();
+                redPlayer.setElfCounter(redPlayer.getElfCounter() + 1);
+                whenFigureChosenSetValues();
             }
         }
     }
