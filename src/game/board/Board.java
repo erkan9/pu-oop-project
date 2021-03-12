@@ -23,8 +23,6 @@ import java.util.Random;
 import static javax.swing.JOptionPane.showMessageDialog;
 
 //TODO Check if figure skipped OBSTACLE on MOVE
-
-//TODO Refactor
 @SuppressWarnings("serial")
 public class Board extends JComponent {
 
@@ -121,8 +119,8 @@ public class Board extends JComponent {
      */
     private void setLists() {
 
-        blackPlayer = new BlackPlayer(0, 0, 0, 0,0);
-        redPlayer = new RedPlayer(0, 0, 0, 0,0);
+        blackPlayer = new BlackPlayer(0, 0, 0, 0, 0);
+        redPlayer = new RedPlayer(0, 0, 0, 0, 0);
 
         BoardGrid = new Integer[BOARD_ROWS][BOARD_COLUMNS];
         staticShapes = new ArrayList();
@@ -385,6 +383,8 @@ public class Board extends JComponent {
         drawShapes(g2);
 
         drawPlayerTurn(g);
+
+        checkIfGameOver();
     }
 
     /**
@@ -442,8 +442,7 @@ public class Board extends JComponent {
                 drawRedPlayerAvailablePlacements(g);
 
             }
-        }
-        else if (!checkPlayerTurn()) {
+        } else if (!checkPlayerTurn()) {
 
             g.setFont(playerTurnFont);
             g.setColor(Color.BLACK);
@@ -460,6 +459,7 @@ public class Board extends JComponent {
 
     /**
      * Method that draws Player's Points and Rounds on the Board
+     *
      * @param g Object of Graphics
      */
     private void drawPlayersPointsAndRounds(Graphics g) {
@@ -470,8 +470,10 @@ public class Board extends JComponent {
         g.drawString("Black's Points: " + blackPlayer.getPoints(), 590, 60);
         g.drawString("Red's Points: " + redPlayer.getPoints(), 590, 40);
     }
+
     /**
      * Method that draws a Rounds on the Board
+     *
      * @param g Object of Graphics
      */
     private void drawRoundCounterOnBoard(Graphics g) {
@@ -529,66 +531,104 @@ public class Board extends JComponent {
 
             activePieces = clickedPiece;
 
-        } else if (activePieces != null && activePieces.canMove(clickedColumn, clickedRow) && ((isRedTurn && activePieces.isRed()) || (!isRedTurn && activePieces.isBlack()))) {
+        } else if (activePieces != null && activePieces.canMove(clickedColumn, clickedRow) &&
+                ((isRedTurn && activePieces.isRed()) || (!isRedTurn && activePieces.isBlack()))) {
 
-            if (chosenAttack || chosenMove) {
+            checkAllActions(clickedPiece, clickedObstacle);
 
-                if (chosenAttack) {
-
-                    if (clickedObstacle != null) {
-
-                        obstacles.remove(clickedObstacle);
-                    } else if (clickedPiece.getPieceHealth() <= 0) {
-
-                        if (clickedPiece.isRed()) {
-
-                            redPieces.remove(clickedPiece);
-                            redPLayerKilledPiece.add(clickedPiece.getClass().getSimpleName());
-                            System.out.println("Red's Figure is killed\n");
-
-                            redPlayer.setKilledPieces(redPlayer.getKilledPieces() + 1);
-
-                        } else {
-
-                            blackPieces.remove(clickedPiece);
-                            blackPLayerKilledPiece.add(clickedPiece.getClass().getSimpleName());
-                            System.out.println("Black's Figure is killed\n");
-
-                            blackPlayer.setKilledPieces(blackPlayer.getKilledPieces() + 1);
-                        }
-                    }
-                } else {
-
-                    // Do the figure move
-                    activePieces.setFigureColumn(clickedColumn);
-                    activePieces.setFigureRow(clickedRow);
-
-                    // if piece is a pawn set hasMoved to true
-                    if (activePieces.getClass().equals(Dwarf.class)) {
-
-                        Dwarf castedDwarf = (Dwarf) (activePieces);
-                        castedDwarf.setHasMoved(true);
-                    }
-                }
-                activePieces = null;
-                turnCounter++;
-                roundCounter++;
-            } else if (chosenHeal) {
-
-                int randomNum = random.nextInt(5);
-
-                System.out.printf("The rolled number to check for Second turn is: [%d]\n", randomNum);
-
-                if (randomNum % 2 != 0) {
-
-                    activePieces = null;
-                    turnCounter++;
-                }
-            }
         } else if (activePieces != null && activePieces.getFigureColumn() == clickedColumn && activePieces.getFigureRow() == clickedRow) {
 
             activePieces = null;
+        }
+    }
 
+    /**
+     * Method that calls other methods about movement and checks them
+     * @param clickedPiece The Figure that is being attacked
+     * @param clickedObstacle The Obstacle that is being attacked
+     */
+    private void checkAllActions(Piece clickedPiece, Obstacle clickedObstacle) {
+
+        if (chosenAttack || chosenMove) {
+
+            if (chosenAttack) {
+
+                checkAttackAction(clickedPiece, clickedObstacle);
+
+            } else {
+
+                checkMovementAction();
+            }
+            activePieces = null;
+            turnCounter++;
+            roundCounter++;
+        }
+        else if (chosenHeal) {
+
+            checkHealAction();
+        }
+    }
+
+    /*
+     * Method that Checks the Heal Action
+     */
+    private void checkHealAction() {
+
+        int randomNum = random.nextInt(5);
+
+        System.out.printf("The rolled number to check for Second turn is: [%d]\n", randomNum);
+
+        if (randomNum % 2 != 0) {
+
+            activePieces = null;
+            turnCounter++;
+        }
+    }
+
+    /**
+     * Method that Checks the Move Action
+     */
+    private void checkMovementAction() {
+
+        activePieces.setFigureColumn(clickedColumn);
+        activePieces.setFigureRow(clickedRow);
+
+        if (activePieces.getClass().equals(Dwarf.class)) {
+
+            Dwarf castedDwarf = (Dwarf) (activePieces);
+            castedDwarf.setHasMoved(true);
+        }
+    }
+
+    /**
+     * Method that Checks the Attack Action
+     * @param clickedPiece The Figure that is being attacked
+     * @param clickedObstacle The Obstacle that is being attacked
+     */
+    private void checkAttackAction(Piece clickedPiece, Obstacle clickedObstacle) {
+
+        if (clickedObstacle != null) {
+
+            obstacles.remove(clickedObstacle);
+        }
+        else if (clickedPiece.getPieceHealth() <= 0) {
+
+            if (clickedPiece.isRed()) {
+
+                redPieces.remove(clickedPiece);
+                redPLayerKilledPiece.add(clickedPiece.getClass().getSimpleName());
+                System.out.println("Red's Figure is killed\n");
+
+                redPlayer.setKilledPieces(redPlayer.getKilledPieces() + 1);
+
+            } else {
+
+                blackPieces.remove(clickedPiece);
+                blackPLayerKilledPiece.add(clickedPiece.getClass().getSimpleName());
+                System.out.println("Black's Figure is killed\n");
+
+                blackPlayer.setKilledPieces(blackPlayer.getKilledPieces() + 1);
+            }
         }
     }
 
@@ -605,6 +645,7 @@ public class Board extends JComponent {
             }
         }
     }
+
     /**
      * Method that outputs the Working phones at the Console
      */
@@ -614,7 +655,7 @@ public class Board extends JComponent {
 
             if (this.blackPLayerKilledPiece.get(index) != null) {
 
-                System.out.printf("\n[%s] - Killed Black Piece ", this.blackPLayerKilledPiece.get(index));
+                System.out.printf("[%s] - Killed Black Piece ", this.blackPLayerKilledPiece.get(index));
             }
         }
     }
@@ -714,43 +755,61 @@ public class Board extends JComponent {
 
             boolean isRedTurn = checkPlayerTurn();
 
-            if (numberOfPlacedFigures >= 4) {
+            checkIfTimeToChangeMenu(isRedTurn);
 
-                Piece clickedPiece = getPiece(clickedColumn, clickedRow);
-                Obstacle clickedObstacle = getObstacle(clickedColumn, clickedRow);
+            //checkIfGameOver();
 
-                figureLogic(clickedRow, clickedColumn, isRedTurn, clickedPiece, clickedObstacle);
-
-                if (isMovementChosen) {
-
-                    isMovementChosen = false;
-                } else {
-                    checkIfFigureActionChosen();
-                }
-            }
-            else {
-                logicForPlacingThePiecesOnBoard(isRedTurn);
-            }
-
-            if (redPlayer.getKilledPieces() >= 1 || blackPlayer.getKilledPieces() >= 1) {
-
-                showMessageDialog(null, "GAME OVER, CHECK CONSOLE FOR INFORMATION");
-
-                getBlackKilledPieces();
-                getRedKilledPieces();
-
-                setLists();
-                turnCounter = 0;
-                roundCounter = 0;
-                numberOfPlacedFigures = 0;
-                setObstaclesOnBoard();
-                setChooseFigureMenu();
-                setChooseFigureMovementMenu();
-
-            }
             drawBoard();
         }
     };
+
+    /**
+     * Method that changes the Menu when all figures are placed
+     * @param isRedTurn The current player's turn
+     */
+    private void checkIfTimeToChangeMenu(boolean isRedTurn) {
+
+        if (numberOfPlacedFigures >= 4) {
+
+            checkActionAndMovement(isRedTurn);
+        }
+        else {
+
+            logicForPlacingThePiecesOnBoard(isRedTurn);
+        }
+    }
+
+    /**
+     * Method that checks if all players are killed
+     */
+    private void checkIfGameOver() {
+
+        if (redPlayer.getKilledPieces() >= 1 || blackPlayer.getKilledPieces() >= 1) {
+
+            showMessageWhenGameOver();
+        }
+    }
+
+    /**
+     * method that checks the actions
+     * @param isRedTurn The current player's turn
+     */
+    private void checkActionAndMovement(boolean isRedTurn) {
+
+        Piece clickedPiece = getPiece(clickedColumn, clickedRow);
+        Obstacle clickedObstacle = getObstacle(clickedColumn, clickedRow);
+
+        figureLogic(clickedRow, clickedColumn, isRedTurn, clickedPiece, clickedObstacle);
+
+        if (isMovementChosen) {
+
+            isMovementChosen = false;
+
+        } else {
+
+            checkIfFigureActionChosen();
+        }
+    }
 
     /**
      * Method that checks if the figure action is chosen
@@ -1001,6 +1060,64 @@ public class Board extends JComponent {
         turnCounter++;
         isFigureChosen = false;
         numberOfPlacedFigures++;
+    }
+
+    /**
+     * Show window with two options and Reset or Exit the game
+     */
+    public void showMessageWhenGameOver() {
+
+        String[] options = {"Reset Game", "Exit Game"};
+        int message;
+
+        System.out.println("\n\nEND GAME INFORMATION");
+        if(redPlayer.getKilledPieces() == 1) {
+
+            message = JOptionPane.showOptionDialog(null, "BLACK IS WINNER\n" +
+                    "Check Console",
+                    "Reset or Exit the game?",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+
+            System.out.printf("Points: [%d]  Rounds: [%d]\n",blackPlayer.getPoints(), ((roundCounter / 2)));
+        }
+        else {
+
+            message = JOptionPane.showOptionDialog(null, "RED IS WINNER\n"+
+                            "Check Console",
+                    "Reset or Exit the game?",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+
+            System.out.printf("Points: [%d]  Rounds: [%d]\n",redPlayer.getPoints(), ((roundCounter / 2)));
+        }
+
+        System.out.println("Killed Black Pieces");
+        getBlackKilledPieces();
+        System.out.println("\nKilled Red Pieces");
+        getRedKilledPieces();
+
+       checkMessageAnswer(message);
+    }
+
+    /**
+     * Method that checks which option the player choose
+     * @param message The message to show
+     */
+    private void checkMessageAnswer(int message) {
+
+        if (message == JOptionPane.YES_OPTION) {
+
+            setLists();
+            turnCounter = 0;
+            roundCounter = 0;
+            numberOfPlacedFigures = 0;
+            setObstaclesOnBoard();
+            setChooseFigureMenu();
+            setChooseFigureMovementMenu();
+
+        } else if (message == JOptionPane.NO_OPTION) {
+
+            System.exit(0);
+        }
     }
 
     /**
